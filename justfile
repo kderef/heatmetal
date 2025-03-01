@@ -6,7 +6,7 @@ bin := if os() == "windows" {
 } else {"bin/heatmetal"}
 
 build:
-    {{odinc}} build . -out:{{bin}} -o:minimal
+    {{odinc}} build . -out:{{bin}} -o:minimal -define:ALWAYS_SAVE_SETTINGS=true
 
 build_release:
     {{odinc}} build . -out:{{bin}} -o:speed
