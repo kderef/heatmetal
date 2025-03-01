@@ -1,6 +1,7 @@
 package game
 
-ALWAYS_SAVE_SETTINGS :: #config(ALWAYS_SAVE_SETTINGS, false)
+// Settings are always saved, show fps on by default
+DEBUG :: #config(DEBUG, false)
 
 import rl "vendor:raylib"
 import "core:fmt"
@@ -14,20 +15,29 @@ Game :: struct {
     // Essential state
     running: bool,
     state: State,
+    gamestate: GameState,
     // Settings
     settings_upon_load: settings.Settings,
     settings: settings.Settings,
 }
 
 initialize :: proc(g: ^Game, title: cstring) {
+    flags := rl.ConfigFlags {
+    }
+    if DEBUG do flags += {rl.ConfigFlag.WINDOW_RESIZABLE}
+
+    rl.SetConfigFlags(flags)
+
     // Load up raylib and such
     rl.InitWindow(800, 600, title)
     rl.InitAudioDevice()
     rl.SetExitKey(rl.KeyboardKey.KEY_NULL)
 
+
     // Set all the fields
     g.running = true
     g.state = .MainMenu
+    init_gamestate(&g.gamestate)
 
     // Try read settings
     fmt.println("[SETTINGS]")
@@ -36,16 +46,24 @@ initialize :: proc(g: ^Game, title: cstring) {
     set, err := settings.read(SETTINGS_FILE)
     if err != nil {
         fmt.printfln("Failed to read settings(%w), resorting to default", err)
-        g.settings = settings.default()
+        set = settings.default()
+
     } else {
         fmt.println("Read settings successfully.")
     }
-    set.show_fps = false // Hide FPS on startup
+
+    set.show_fps = DEBUG // Hide FPS on startup
+    set.start_fullscreen = DEBUG
     g.settings = set
     g.settings_upon_load = set
     fmt.printfln("settings = %#v", set)
     
     // Apply settings
+    rl.SetTargetFPS(auto_cast g.settings.fps_limit)
+    apply_settings(&g.gamestate, &g.settings)
+
+    // Apply UI style
+    ui.apply_style()
 }
 
 close :: proc(g: ^Game) {
@@ -57,7 +75,7 @@ close :: proc(g: ^Game) {
     g.settings.show_fps = false
     settings_changed := g.settings != g.settings_upon_load
 
-    if settings_changed || ALWAYS_SAVE_SETTINGS {
+    if settings_changed || DEBUG {
         fmt.println("settings changed, saving...")
         settings_write_err := settings.write(&g.settings, SETTINGS_FILE)
         if settings_write_err != nil {
@@ -86,8 +104,9 @@ handle_mainmenu_option :: proc(g: ^Game, o: ui.MainMenuOption) {
         g.running = false
     case .Start:
         g.state = .Playing
+        prepare_for_playing(g)
     case .Settings:
-        g.state = .Settings
+        g.state = .MainMenuSettings
     }
 }
 
@@ -103,8 +122,12 @@ draw :: proc(using g: ^Game){
             if chosen != nil do handle_mainmenu_option(g, chosen.?)
         case .Paused:
         case .Playing:
-        case .Settings:
-            ui.show_settings()
+            render(g)
+        case .MainMenuSettings, .PausedSettings:
+            if ui.show_settings(&settings) {
+                new_state: State = .MainMenu if state == .MainMenuSettings else .PausedSettings
+                state = new_state
+            }
     }
 
     if settings.show_fps do DrawFPS(0, 0)

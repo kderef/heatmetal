@@ -4,5 +4,6 @@ State :: enum {
     MainMenu,
     Playing,
     Paused,
-    Settings,
+    MainMenuSettings,
+    PausedSettings,
 }

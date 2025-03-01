@@ -6,7 +6,9 @@ import "core:io"
 
 Settings :: struct {
     show_fps: bool,
+    start_fullscreen: bool,
     fps_limit: u32,
+    fov: u32,
 }
 
 Error :: union {
@@ -18,6 +20,8 @@ Error :: union {
 default :: proc() -> Settings {
     return Settings {
         show_fps = true,
+        start_fullscreen = true,
+        fov = 80,
         fps_limit = monitor_refresh_rate() 
     }
 }
