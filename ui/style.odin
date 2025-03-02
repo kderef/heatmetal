@@ -1,6 +1,7 @@
 package ui
 
 import rl "vendor:raylib"
+import "vendor:microui"
 import "core:fmt"
 
 apply_style :: proc() {
@@ -19,10 +20,16 @@ prev_font_size: i32
 
 set_fontsize :: proc(new: $T) {
     using rl
+    new := cast(i32)new
     GuiSetStyle(
-        GuiControl.DEFAULT,
+        .DEFAULT,
         auto_cast GuiDefaultProperty.TEXT_SIZE,
-        cast(i32)new
+        new
+    )
+    GuiSetStyle(
+        .DEFAULT,
+        auto_cast GuiControlProperty.TEXT_PADDING,
+        new
     )
 }
 

@@ -109,6 +109,8 @@ draw :: proc(using g: ^Game){
     BeginDrawing()
     ClearBackground(BLACK)
 
+    if ui.popup != nil do GuiDisable()
+
     switch state {
         case .MainMenu:
             chosen := ui.show_main_menu()
@@ -130,6 +132,7 @@ draw :: proc(using g: ^Game){
             }
     }
 
+    GuiEnable()
     handle_popup(g)
 
     if show_fps do DrawFPS(0, 0)

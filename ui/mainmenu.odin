@@ -15,8 +15,6 @@ button :: proc(r: ^rl.Rectangle, text: cstring) -> bool {
     return rl.GuiButton(r^, text)
 }
 
-exit_menu_shown := false
-
 show_main_menu :: proc() -> Maybe(MainMenuOption) {
     using rl
 
@@ -30,8 +28,6 @@ show_main_menu :: proc() -> Maybe(MainMenuOption) {
     text_size := screen_w / 20
     set_fontsize(text_size)
 
-    if exit_menu_shown do GuiDisable()
-
     button_size := Vector2{screen_w * 0.2, text_size * 1.2}
     button_bounds := Rectangle{
         screen_w / 2 - button_size.x / 2,
@@ -40,9 +36,11 @@ show_main_menu :: proc() -> Maybe(MainMenuOption) {
 
     if button(&button_bounds, "play") do return .Start
     if button(&button_bounds, "settings") do return .Settings
-    if button(&button_bounds, "exit") do exit_menu_shown = true
+    if button(&button_bounds, "exit") do show_popup(.ConfirmExit, "Exit to desktop", "Are you sure you want to exit?", "Yes;No")
 
-    if exit_menu_shown {
+
+
+    if false {
         GuiEnable()
 
         set_fontsize_temp(20)
@@ -55,7 +53,7 @@ show_main_menu :: proc() -> Maybe(MainMenuOption) {
         restore_fontsize()
 
         if choice == 1 do return .Exit // 'Yes'
-        if choice == 0 || choice == 2 do exit_menu_shown = false // 'X' button
+        // if choice == 0 || choice == 2 do exit_menu_shown = false // 'X' button
     }
 
     return nil

@@ -62,9 +62,12 @@ handle_popup :: proc(g: ^Game) {
 
     response := ui.draw_popup()
 
-    if response == 1 {
-        g.state = .MainMenu
-    } else if response == 0 || response == 2 {
-        ui.hide_popup()
+    switch ui.popup.?.kind {
+    case .ConfirmExit:
+        if response == 1 {
+            g.running = false
+        } else if response == 0 || response == 2 {
+            ui.hide_popup()
+        }
     }
 }
