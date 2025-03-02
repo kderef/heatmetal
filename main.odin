@@ -3,7 +3,7 @@ package main
 import "game"
 
 main :: proc() {
-    g: game.Game = {}
+    g: game.Game
 
 	game.initialize(&g, "Heatmetal")
 

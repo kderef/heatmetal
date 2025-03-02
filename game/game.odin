@@ -17,6 +17,7 @@ Game :: struct {
     state: State,
     gamestate: GameState,
     // Settings
+    show_fps: bool,
     settings_upon_load: settings.Settings,
     settings: settings.Settings,
 }
@@ -26,10 +27,12 @@ initialize :: proc(g: ^Game, title: cstring) {
     }
     if DEBUG do flags += {rl.ConfigFlag.WINDOW_RESIZABLE}
 
+    g.show_fps = DEBUG
+
     rl.SetConfigFlags(flags)
 
     // Load up raylib and such
-    rl.InitWindow(800, 600, title)
+    rl.InitWindow(cast(i32)ui.DEFAULT_WINDOW_SIZE[0], cast(i32)ui.DEFAULT_WINDOW_SIZE[1], title)
     rl.InitAudioDevice()
     rl.SetExitKey(rl.KeyboardKey.KEY_NULL)
 
@@ -52,8 +55,7 @@ initialize :: proc(g: ^Game, title: cstring) {
         fmt.println("Read settings successfully.")
     }
 
-    set.show_fps = DEBUG // Hide FPS on startup
-    set.start_fullscreen = DEBUG
+    set.start_fullscreen = !DEBUG
     g.settings = set
     g.settings_upon_load = set
     fmt.printfln("settings = %#v", set)
@@ -72,7 +74,6 @@ close :: proc(g: ^Game) {
     fmt.println("Raylib successfully shutdown")
 
     // Only write settings if changed (or flag is set)
-    g.settings.show_fps = false
     settings_changed := g.settings != g.settings_upon_load
 
     if settings_changed || DEBUG {
@@ -92,8 +93,13 @@ update :: proc(using g: ^Game) {
 
     g.running ~= WindowShouldClose()
 
-    if IsKeyPressed(KeyboardKey.F5) {
-        settings.show_fps ~= true
+    key := GetKeyPressed()
+
+    #partial switch key {
+    case settings.controls.toggle_show_fps:
+        show_fps ~= true
+    case settings.controls.fullscreen:
+        ui.toggle_fullscreen(&settings)
     }
 }
 
@@ -130,7 +136,7 @@ draw :: proc(using g: ^Game){
             }
     }
 
-    if settings.show_fps do DrawFPS(0, 0)
+    if show_fps do DrawFPS(0, 0)
 
     EndDrawing()
 }

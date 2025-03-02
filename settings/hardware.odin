@@ -8,3 +8,12 @@ monitor_refresh_rate :: proc() -> u32 {
     refresh := rl.GetMonitorRefreshRate(monitor)
     return auto_cast refresh
 }
+
+monitor_resolution :: proc() -> Resolution {
+    monitor := rl.GetCurrentMonitor()
+    resolution := Resolution {
+        cast(u32)rl.GetMonitorWidth(monitor),
+        cast(u32)rl.GetMonitorHeight(monitor)
+    }
+    return resolution
+}

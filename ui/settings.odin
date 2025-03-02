@@ -42,7 +42,7 @@ show_settings :: proc(set: ^settings.Settings) -> (exit: bool) {
 
     // FPS slider
     slider_w := cast(f32)screen_w * 0.5
-    slider_bounds := Rectangle {200, title_size.y * 2, slider_w , 50}
+    slider_bounds := Rectangle {300, title_size.y * 2, slider_w , 50}
     fps_changed := slider("FPS Limit", slider_bounds, &set.fps_limit, settings.FPS_MIN, settings.FPS_MAX)
 
     // If changed, apply
