@@ -26,3 +26,14 @@ toggle_fullscreen :: proc(s: ^cfg.Settings) {
     }
 
 }
+
+grab_control :: proc(control: bool) {
+    using rl
+    if control {
+        HideCursor()
+        DisableCursor()
+    } else {
+        ShowCursor()
+        EnableCursor()
+    }
+}

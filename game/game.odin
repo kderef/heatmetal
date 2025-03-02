@@ -15,7 +15,7 @@ Game :: struct {
     // Essential state
     running: bool,
     state: State,
-    gamestate: GameState,
+    player: Player,
     // Settings
     show_fps: bool,
     settings_upon_load: settings.Settings,
@@ -40,7 +40,7 @@ initialize :: proc(g: ^Game, title: cstring) {
     // Set all the fields
     g.running = true
     g.state = .MainMenu
-    init_gamestate(&g.gamestate)
+    player_init(g)
 
     // Try read settings
     fmt.println("[SETTINGS]")
@@ -62,7 +62,7 @@ initialize :: proc(g: ^Game, title: cstring) {
     
     // Apply settings
     rl.SetTargetFPS(auto_cast g.settings.fps_limit)
-    apply_settings(&g.gamestate, &g.settings)
+    player_apply_settings(g)
 
     // Apply UI style
     ui.apply_style()
@@ -95,26 +95,13 @@ update :: proc(using g: ^Game) {
 
     key := GetKeyPressed()
 
-    #partial switch key {
-    case settings.controls.toggle_show_fps:
-        show_fps ~= true
-    case settings.controls.fullscreen:
-        ui.toggle_fullscreen(&settings)
+    handle_inputs(g, key)
+
+    if state == .Playing {
+        player_update_view(g)
     }
 }
 
-handle_mainmenu_option :: proc(g: ^Game, o: ui.MainMenuOption) {
-    switch o {
-    case .Exit:
-        fmt.println("user requested exit...")
-        g.running = false
-    case .Start:
-        g.state = .Playing
-        prepare_for_playing(g)
-    case .Settings:
-        g.state = .MainMenuSettings
-    }
-}
 
 draw :: proc(using g: ^Game){
     using rl
@@ -125,16 +112,25 @@ draw :: proc(using g: ^Game){
     switch state {
         case .MainMenu:
             chosen := ui.show_main_menu()
-            if chosen != nil do handle_mainmenu_option(g, chosen.?)
-        case .Paused:
-        case .Playing:
+            if chosen != nil do handle_main_menu_option(g, chosen.?)
+        case .Paused, .Playing:
+            BeginMode3D(g.player.camera)
             render(g)
+            EndMode3D()
+
+            if state == .Paused {
+                if opt := ui.show_pause_menu(); opt != nil {
+                    handle_pause_menu_option(g, opt.?)
+                }
+            }
         case .MainMenuSettings, .PausedSettings:
             if ui.show_settings(&settings) {
                 new_state: State = .MainMenu if state == .MainMenuSettings else .PausedSettings
                 state = new_state
             }
     }
+
+    handle_popup(g)
 
     if show_fps do DrawFPS(0, 0)
 
