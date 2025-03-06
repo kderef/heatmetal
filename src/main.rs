@@ -1,18 +1,39 @@
+use imgui::{Context, FontSource};
+use raylib::prelude::*;
+use raylib_imgui_rs::Renderer;
 
-use macroquad::prelude::*;
+fn main() {
+    // Init raylib
+    let (mut rl, thread) = raylib::init()
+        .resizable()
+        .size(640, 480)
+        .title("Hello, World")
+        .build();
 
-fn app() -> Conf {
-    Conf {
-        window_title: "HEATMETAL".to_owned(),
-        ..Default::default()
-    }
-}
+    let mut imgui = Context::create();
 
+    // imgui
+    // .fonts()
+    // .add_font(&[FontSource::DefaultFontData { config: None }]);
 
-#[macroquad::main(app)]
-async fn main() {
-    loop {
+    let mut renderer = Renderer::create(&mut imgui, &mut rl, &thread);
 
-        next_frame().await;
+    while !rl.window_should_close() {
+        renderer.update(&mut imgui, &mut rl);
+
+        {
+            let ui = imgui.new_frame();
+            ui.show_demo_window(&mut true);
+            // Draw Imgui stuff here
+        }
+
+        {
+            let mut d = rl.begin_drawing(&thread);
+
+            d.clear_background(Color::WHITE);
+            // Draw raylib stuff here
+
+            renderer.render(&mut imgui, &mut d);
+        }
     }
 }
