@@ -2,6 +2,7 @@ bin/*
 **/*~
 **/.DS_Store
 *.json
+imgui.ini
 
 # Added by cargo
 
